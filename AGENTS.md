@@ -1,24 +1,26 @@
 # nithindatt.github.io: the owner's public pages
 
-Owned by the owner's own GitHub account. It holds the public home page and privacy policy of Personal Drive CLI, the
-owner's private Google API tool, and nothing else. GitHub Pages serves the root of `main` with Jekyll at
-https://nithindatt.github.io/. It is a workbench of `personal`; nothing from `personal`'s private-life material ever
-comes here.
+Owned by the owner's own GitHub account. What it publishes is the public home page and privacy policy of Personal
+Drive CLI, the owner's private Google API tool, and nothing else; its other files are machinery that `_config.yml`
+keeps unpublished. GitHub Pages serves the root of `main` with Jekyll at https://nithindatt.github.io/. It is a
+workbench of the owner's private repository; nothing of the owner's private-life material ever comes here.
 
 ## Never
 
-- Never add a file the public should not read: every tracked file whose name does not start with a dot is served,
-  unless `_config.yml` excludes it. `_config.yml` comes from `system`; a new machinery file is added to its exclude
-  list there first.
+- Never add a file the public should not read: every tracked file whose name does not start with a dot or an
+  underscore is served, unless `_config.yml` excludes it. `_config.yml` comes from `system`; a new machinery file
+  is added to its exclude list there first.
 - Never add a `.nojekyll` file: it switches the exclude list off and publishes every file.
 - Never publish a change from an agent session: prepare it on a branch; the owner merges and so publishes it.
 - Never edit a copy from `system`: this page and every other file the sync delivers, each listed in
   `.agents/delivered.csv` (for a file with a shared block, such as `.gitignore`, only the block), change only in
-  `system`. Where its format allows, a copy's first line says `generated from system: edit
-  there`. A rule of this
-  repository's own goes in a section headed `Local` at the end of this page, any other item in a file of its own once
-  the exclude list covers it (above); the sync keeps both. A settings entry of its own goes in the git-ignored
-  `.claude/settings.local.json`, never in `.claude/settings.json`, which git publishes with this public repository.
+  `system`. Where its format allows, a copy's first line says `generated from system: edit there`. A rule of this
+  repository's own goes in a section headed `Local` at the end of this page, a skill in a folder named
+  `local-<name>`, any other item in a file of its own once the exclude list covers it (above); the sync keeps them. A
+  settings entry of its own goes in the git-ignored `.claude/settings.local.json`, never in `.claude/settings.json`,
+  which git publishes with this public repository. A new worktree has no `.claude/settings.local.json` (git does not
+  carry an ignored file): copy it from the main clone first. A local item wins over a copy until `system` takes it
+  in, never over a guardrail.
 
 <!-- shared:begin (the sync from `system` writes this block; a change made here is undone at the next sync) -->
 ## Shared by every company repository

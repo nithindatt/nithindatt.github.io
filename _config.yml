@@ -7,7 +7,6 @@ exclude:
   - AGENTS.md
   - CLAUDE.md
   - .agents/
-  - .agents/repository.yml
   - .claude/
   - .pre-commit-config.yaml
   - .gitattributes

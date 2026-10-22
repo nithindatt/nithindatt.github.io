@@ -17,4 +17,4 @@ repos:
         stages: [commit-msg]
         verbose: true
   # shared:end
-  # This repository's own hooks go below, each as its own `- repo:` entry; the template sync never touches them.
+  # This repository's own hooks go below, each as its own `- repo:` entry; the sync from `system` never touches them.
