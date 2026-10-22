@@ -11,7 +11,7 @@ only the owner may approve a change to:
     and system's AGENTS.md list, which adds its own paths); in `system` it also holds the standing approvals, the blocked paths and
     the library originals of every protected file (2026-10-22);
   - in every other repository: the EVERYWHERE list below (the shared instructions, the secret-scan exceptions, this
-    check and the hooks), so a template sync that changes one of them carries the owner's yes too.
+    check and the hooks), so a sync from `system` that changes one of them carries the owner's yes too.
 The staged files are read with `git diff --cached --name-only --no-renames`, so a deletion counts too, and a file
 moved away counts under its old path as well as its new one. Paths are matched without regard to letter case. When
 git cannot list the staged files, the check prints `BLOCKED ...` and refuses: a check that cannot run does not pass.
