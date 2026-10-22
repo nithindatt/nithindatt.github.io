@@ -1,0 +1,20 @@
+# Git hooks run at every commit (install once per clone: python3 -m pre_commit install).
+# Each outside hook is pinned to the version read before it was installed.
+default_install_hook_types: [pre-commit, commit-msg]
+default_stages: [pre-commit]
+repos:
+  # shared:begin (the sync from `system` writes this block; a change made here is undone at the next sync)
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: 83d9cd684c87d95d656c1458ef04895a7f1cbd8e  # frozen: v8.30.1
+    hooks:
+      - id: gitleaks
+  - repo: local
+    hooks:
+      - id: check-commit-message
+        name: the owner's yes for a protected file (subject form and trailer reported)
+        entry: python3 scripts/check_commit_message.py
+        language: system
+        stages: [commit-msg]
+        verbose: true
+  # shared:end
+  # This repository's own hooks go below, each as its own `- repo:` entry; the template sync never touches them.

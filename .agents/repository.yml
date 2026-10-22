@@ -1,0 +1,23 @@
+# The identity file: it proves which repository this folder is. The sync from `system` keeps its keys.
+# id: a UUIDv7 that never changes, even on a rename (`python3 library/scripts/new-id/new_id.py` in system prints one).
+# name: the repository's name, as on GitHub.
+# kind: one of the kinds on the repositories page (`system:docs/maps/repositories.md`).
+# remote: <owner>/<repository> on GitHub, or none until a remote exists.
+# classification: who may read what is here: one of the classifications on the repositories page (for example
+#   `confidential`). A `public` repository gets no copy of the global instructions, because they are internal.
+# never: what must never enter this repository (the kind's "Never holds" cell on the repositories page).
+# template-version: the `system` commit the library was last synced from; the sync sets it. A repository whose
+#   commit is behind `system`'s `main` is due a sync.
+# status: active or archived.
+# blueprint: the blueprint in `system:blueprints/` this repository is built by (for example `workspace` is `brain`);
+#   the sync reads it first and refuses a value that is unfilled or names no blueprint. Always fill it.
+id: 01a1627a-6894-70b3-b532-306304e9cb00
+name: nithindatt.github.io
+kind: website
+remote: nithindatt/nithindatt.github.io
+classification: public
+never: Anything not approved for the public.
+template-version: 83c084f
+status: active
+blueprint: workbench@public-pages
+# own-content: <path>, <path>   # only for a repository that existed before it joined: its own files, which checks that read this line leave alone

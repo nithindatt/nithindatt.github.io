@@ -1,0 +1,11 @@
+# generated from system: edit there
+# Keep LF line endings in every clone, on every system. Reason: the checks read LF only, and on Windows
+# core.autocrlf=true would otherwise turn every text file into CRLF at checkout (rules: a tool's standard
+# configuration file, no page header).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary
+*.zip binary
+*.bundle binary

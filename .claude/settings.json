@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "autoMemoryEnabled": false,
+  "env": {
+    "DISABLE_ERROR_REPORTING": "1"
+  },
+  "permissions": {
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/secrets/**)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)",
+      "Read(~/.ssh/**)",
+      "Read(~/.claude/.credentials.json)",
+      "Read(~/.git-credentials)",
+      "Read(~/.config/gh/hosts.yml)",
+      "Read(~/.netrc)",
+      "Read(~/.npmrc)",
+      "Read(~/.pypirc)",
+      "Read(~/.docker/config.json)",
+      "Read(~/.config/gcloud/**)",
+      "Read(//mnt/c/Users/*/.ssh/**)",
+      "Read(~/AppData/Roaming/GitHub CLI/**)",
+      "Read(~/AppData/Roaming/gcloud/**)",
+      "Read(~/AppData/Roaming/Bitwarden CLI/**)",
+      "Read(~/.config/gws/**)",
+      "Read(~/.config/gws-personal/**)",
+      "Read(~/.secrets/**)",
+      "Bash(git push *--force*)",
+      "Bash(git push *--mirror*)",
+      "Bash(git push -f*)",
+      "Bash(git push * -f)",
+      "Bash(git push * -f *)",
+      "Bash(git push * +*)",
+      "Bash(git push -uf*)",
+      "Bash(git *--no-verify*)",
+      "Bash(git *--no-v*)",
+      "Bash(git commit -n*)",
+      "Bash(git commit * -n)",
+      "Bash(git commit * -n *)",
+      "Bash(git commit -an*)",
+      "Bash(git *core.hooksPath*)",
+      "Bash(pre-commit uninstall*)",
+      "Bash(*pre_commit uninstall*)",
+      "Bash(*SKIP=*)",
+      "Edit(/.git/hooks/**)"
+    ]
+  }
+}
