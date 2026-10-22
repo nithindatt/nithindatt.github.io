@@ -17,7 +17,7 @@ kind: website
 remote: nithindatt/nithindatt.github.io
 classification: public
 never: Anything not approved for the public.
-template-version: 25cc7d6
+template-version: e24d581
 status: active
 blueprint: workbench@public-pages
 # own-content: <path>, <path>   # only for a repository that existed before it joined: its own files, which checks that read this line leave alone
