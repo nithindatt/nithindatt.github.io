@@ -14,10 +14,11 @@ comes here.
 - Never publish a change from an agent session: prepare it on a branch; the owner merges and so publishes it.
 - Never edit a copy from `system`: this page and every other file the sync delivers, each listed in
   `.agents/delivered.csv` (for a file with a shared block, such as `.gitignore`, only the block), change only in
-  `system`. Where its format allows, a copy's first line says `generated from system: edit there`. A rule of this
+  `system`. Where its format allows, a copy's first line says `generated from system: edit
+  there`. A rule of this
   repository's own goes in a section headed `Local` at the end of this page, any other item in a file of its own once
   the exclude list covers it (above); the sync keeps both. A settings entry of its own goes in the git-ignored
-  `.claude/settings.local.json`, never in `.claude/settings.json`, which this public repository publishes.
+  `.claude/settings.local.json`, never in `.claude/settings.json`, which git publishes with this public repository.
 
 <!-- shared:begin (the sync from `system` writes this block; a change made here is undone at the next sync) -->
 ## Shared by every company repository
