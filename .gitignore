@@ -1,0 +1,22 @@
+# shared:begin (the sync from `system` writes this block; a change made here is undone at the next sync)
+# Secrets: keys and credential files. Reason: secrets live in Bitwarden only, never in git.
+.env
+.env.*
+gha-creds-*.json
+secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+# shared:end
+
+# This repository's own lines go below; the template sync never touches them.
+
+# Local settings. Reason: each person's own AI tool settings; the shared ones are committed.
+.claude/settings.local.json
+
+# Python caches. Reason: rebuildable output is not kept.
+__pycache__/
+
+# Throwaway worktrees of subagents. Reason: temporary copies, never part of the repository.
+.claude/worktrees/
