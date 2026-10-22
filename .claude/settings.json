@@ -47,6 +47,9 @@
       "Bash(*pre_commit uninstall*)",
       "Bash(*SKIP=*)",
       "Edit(/.git/hooks/**)"
+    ],
+    "ask": [
+      "Bash(gh pr merge*)"
     ]
   }
 }
