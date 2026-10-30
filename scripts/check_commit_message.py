@@ -47,7 +47,9 @@ HUB = ("AGENTS.md", ".agents/instructions/global-instructions.md", "system/permi
        # in system: the standing approvals and the library originals of protected files (2026-10-22)
        "docs/rules/permissions.md", "docs/rules/blocked-paths.md",
        "library/instructions/*", "library/settings/*", "library/hooks/*", "library/checks/*",
-       "library/subagents/reviewer/*", "library/repository-files/gitleaksignore*", "library/connectors/*",
+       "library/subagents/reviewer/*", "library/repository-files/gitleaksignore*",
+       # the identity file's originals, which the sync places as the protected .agents/repository.yml (2026-10-30)
+       "library/repository-files/identity*", "library/connectors/*",
        "library/routines/*", "library/scripts/mcp-github-headers/*",
        # the installer the cloud-setup hook runs (it installs the git hooks) and the sync, with their originals
        "scripts/install.py", "scripts/sync.py", "library/scripts/install/*", "library/scripts/sync/*",
