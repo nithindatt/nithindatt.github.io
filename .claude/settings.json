@@ -2,7 +2,8 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "autoMemoryEnabled": false,
   "env": {
-    "DISABLE_ERROR_REPORTING": "1"
+    "DISABLE_ERROR_REPORTING": "1",
+    "CLAUDE_CODE_USE_POWERSHELL_TOOL": "0"
   },
   "permissions": {
     "deny": [
@@ -46,10 +47,54 @@
       "Bash(pre-commit uninstall*)",
       "Bash(*pre_commit uninstall*)",
       "Bash(*SKIP=*)",
-      "Edit(/.git/hooks/**)"
+      "Edit(/.git/hooks/**)",
+      "Read(~/.gam/**)",
+      "Read(//c/GAMConfig/**)",
+      "Read(C:/GAMConfig/**)",
+      "Bash(*gws* drive files list*\"allDrives*)",
+      "Bash(*gws* drive files list*'allDrives*)",
+      "Bash(*gws* drive files list*=allDrives*)",
+      "Bash(*/.gam*)",
+      "Bash(*\\.gam*)",
+      "Bash(*.gam/*)",
+      "Bash(*.gam\\*)",
+      "Bash(*GAMConfig*oauth2*)",
+      "Bash(*GAMConfig*client_secrets*)",
+      "Bash(*gamconfig*oauth2*)",
+      "Bash(*gamconfig*client_secrets*)",
+      "PowerShell(git push *--force*)",
+      "PowerShell(git push *--mirror*)",
+      "PowerShell(git push -f*)",
+      "PowerShell(git push * -f)",
+      "PowerShell(git push * -f *)",
+      "PowerShell(git push * +*)",
+      "PowerShell(git push -uf*)",
+      "PowerShell(git *--no-verify*)",
+      "PowerShell(git *--no-v*)",
+      "PowerShell(git commit -n*)",
+      "PowerShell(git commit * -n)",
+      "PowerShell(git commit * -n *)",
+      "PowerShell(git commit -an*)",
+      "PowerShell(git *core.hooksPath*)",
+      "PowerShell(pre-commit uninstall*)",
+      "PowerShell(*pre_commit uninstall*)",
+      "PowerShell(*SKIP=*)",
+      "PowerShell(*env:SKIP*)",
+      "PowerShell(*gws* drive files list*\"allDrives*)",
+      "PowerShell(*gws* drive files list*'allDrives*)",
+      "PowerShell(*gws* drive files list*=allDrives*)",
+      "PowerShell(*/.gam*)",
+      "PowerShell(*\\.gam*)",
+      "PowerShell(*.gam/*)",
+      "PowerShell(*.gam\\*)",
+      "PowerShell(*GAMConfig*oauth2*)",
+      "PowerShell(*GAMConfig*client_secrets*)",
+      "PowerShell(*gamconfig*oauth2*)",
+      "PowerShell(*gamconfig*client_secrets*)"
     ],
     "ask": [
-      "Bash(gh pr merge*)"
+      "Bash(gh pr merge*)",
+      "PowerShell(gh pr merge*)"
     ]
   }
 }
