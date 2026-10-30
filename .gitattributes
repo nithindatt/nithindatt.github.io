@@ -11,3 +11,6 @@
 *.bundle binary
 *.ico binary
 *.woff2 binary
+# A vCard (a contact card, such as product's website card) keeps CRLF line endings, which its standard (RFC 6350)
+# requires; no check reads .vcf files.
+*.vcf text eol=crlf

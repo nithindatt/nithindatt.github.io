@@ -8,6 +8,10 @@ secrets/
 *.key
 *.p12
 *.pfx
+# Drive exports: `gws drive files export` without `-o` writes `download.<ext>` into the current folder. Reason: company
+# data from Drive never enters git by accident (a text export passes the binary-file checks); run exports only from
+# the scratch folder. A real file of that name needs a `!download.<ext>` exception line in the repository's own lines.
+download.*
 # shared:end
 
 # This repository's own lines go below; the sync from `system` never touches them.
