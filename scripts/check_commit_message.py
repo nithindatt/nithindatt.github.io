@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # generated from system: edit there
-"""Commit message check: blocks a protected file changed without the owner's yes; reports the subject form and the
-Made-by line. Run by git at the commit-msg stage.
+"""Commit message check: blocks a protected file changed without the owner's yes; reports the subject form, the
+Made-by line and the order of the trailers. Run by git at the commit-msg stage.
 
 Blocks one thing: an agent's or a routine's commit that changes a protected file without the line
 `Owner-yes: "<the owner's words>"`, quoting his yes from the session (guardrail 6). The protected files are the ones
@@ -9,16 +9,20 @@ only the owner may approve a change to:
   - in the hub and in the control plane (the identity file .agents/repository.yml says `kind: workspace` or
     `kind: system`; `system` added on the owner's correction of 2026-10-21): the HUB list below (workspace's AGENTS.md list,
     and system's AGENTS.md list, which adds its own paths); in `system` it also holds the standing approvals, the blocked paths and
-    the library originals of every protected file (2026-10-22);
+    the library originals of every protected file (2026-10-22), and the nexego-core trial plugin's store
+    (`.claude-plugin/`) and everything in `library/plugins-and-mods/` (the trial plugin's build, parts, store and
+    plugin manifest originals, test, generated plugin and managed draft, the laptop's plugin record, the index page),
+    2026-10-31;
   - in every other repository: the EVERYWHERE list below (the shared instructions, the secret-scan exceptions, this
-    check and the hooks), so a sync from `system` that changes one of them carries the owner's yes too.
+    check, the views check and the hooks), so a sync from `system` that changes one of them carries the owner's yes too.
 The staged files are read with `git diff --cached --name-only --no-renames`, so a deletion counts too, and a file
 moved away counts under its old path as well as its new one. Paths are matched without regard to letter case. When
 git cannot list the staged files, the check prints `BLOCKED ...` and refuses: a check that cannot run does not pass.
 
 Reports only (prints a NOTICE and passes, because format is not harm): a subject that is not in the form
-`type(scope): summary` (or `type: summary`), and a missing `Made-by: agent | program <tool>` line (or `job` or
-`owner`).
+`type(scope): summary` (or `type: summary`), a missing `Made-by: agent | program <tool>` line (or `job` or
+`owner`), and trailers out of their one order: `Owner-yes:`, then `Made-by:`, then any `Co-authored-by:` lines (in
+any letter case; the commit template in system:docs/rules/reference.md).
 
 A commit the owner makes by hand is never checked (the owner's rule, 2026-09-29: freedom, not new blocks). Nor is a
 merge or a revert that git itself has in progress (MERGE_HEAD or REVERT_HEAD exists): a merge of main into a work
@@ -39,11 +43,20 @@ TYPES = "feat|fix|docs|chore|refactor|test|build|ci|perf|style|revert"
 SUBJECT = re.compile(rf"^({TYPES})(\([a-z0-9-]+\))?!?: \S")
 TRAILER = re.compile(r"^Made-by: (agent|job|owner) \| program \S+", re.M)
 OWNER_YES = re.compile(r"^Owner-yes: [\"“][^\"”]*\S[^\"”]*[\"”]\s*$", re.M)
+# The trailers in their one order: a line of a later kind before a line of an earlier kind is out of order.
+TRAILER_ORDER = tuple(re.compile(rf"^{name}:", re.I) for name in ("Owner-yes", "Made-by", "Co-authored-by"))
 AGENT_MARKERS = ("AI_AGENT", "CLAUDECODE", "CLAUDE_CODE_REMOTE", "CODEX_SANDBOX")
-HUB = ("AGENTS.md", ".agents/instructions/global-instructions.md", "system/permissions.md", ".claude/settings.json",
+HUB = ("AGENTS.md", ".agents/instructions/global-instructions.md", "system/permissions.md",
+       # workspace's copy of the blocked-paths list, protected as its original in system is (2026-10-30)
+       "system/blocked-paths.md", ".claude/settings.json",
        ".claude/hooks/*", ".claude/agents/reviewer.md", ".pre-commit-config.yaml", ".gitleaksignore",
        "scripts/check_*.py", "routines/*", ".github/workflows/*", ".mcp.json", ".codex/config.toml",
        "scripts/mcp_github_headers.py",
+       ".pre-commit-hooks.yaml",  # the hook source: it decides what code the repositories using it run (S149)
+       # the nexego-core trial plugin: its store, its build and parts, and the generated plugin whose hooks and agents a
+       # session runs; and plugin-list@laptop, a record of the laptop's plugin state (Claude Code writes those files),
+       # protected so it moves only with the owner's yes; it does not decide installs (2026-10-31, system PR 98)
+       ".claude-plugin/*", "library/plugins-and-mods/*",
        # in system: the standing approvals and the library originals of protected files (2026-10-22)
        "docs/rules/permissions.md", "docs/rules/blocked-paths.md",
        "library/instructions/*", "library/settings/*", "library/hooks/*", "library/checks/*",
@@ -58,7 +71,21 @@ HUB = ("AGENTS.md", ".agents/instructions/global-instructions.md", "system/permi
        # the identity file: its kind decides which list applies, so changing it is protected too (2026-10-22)
        ".agents/repository.yml")
 EVERYWHERE = (".agents/instructions/global-instructions.md", ".gitleaksignore", "scripts/check_commit_message.py",
-              ".claude/hooks/*", "scripts/install.py")
+              ".claude/hooks/*", "scripts/install.py",
+              "scripts/check_views.py")  # the views check: only the mirror writes views/ (decision 0029, S072)
+
+
+def trailers_in_order(lines):
+    """True when the trailer lines keep the order Owner-yes:, then Made-by:, then any Co-authored-by: lines."""
+    last = -1
+    for line in lines:
+        rank = next((n for n, pattern in enumerate(TRAILER_ORDER) if pattern.match(line)), None)
+        if rank is None:
+            continue
+        if rank < last:
+            return False
+        last = rank
+    return True
 
 
 def by_agent():
@@ -130,6 +157,8 @@ def main(argv):
         print(f"NOTICE subject '{subject}' is not in the form type(scope): summary, type one of {TYPES}")
     if not TRAILER.search(body):
         print("NOTICE no 'Made-by: agent | program <tool>' line")
+    if not trailers_in_order(lines):
+        print("NOTICE the trailers are out of order; keep Owner-yes:, then Made-by:, then any Co-authored-by: lines")
     staged = staged_files()
     if staged is None:
         print("BLOCKED the commit message check could not read the staged files from git, so it cannot tell whether "

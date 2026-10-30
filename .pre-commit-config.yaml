@@ -16,5 +16,11 @@ repos:
         language: system
         stages: [commit-msg]
         verbose: true
+      - id: check-views
+        name: only the repository mirror writes views/ (decision 0029 in system)
+        entry: python3 scripts/check_views.py
+        language: system
+        stages: [commit-msg]
+        verbose: true
   # shared:end
   # This repository's own hooks go below, each as its own `- repo:` entry; the sync from `system` never touches them.

@@ -25,22 +25,22 @@ workbench of the owner's private repository; nothing of the owner's private-life
 <!-- shared:begin (the sync from `system` writes this block; a change made here is undone at the next sync) -->
 ## Shared by every company repository
 - **At session start,** prove the repository: the root (`git rev-parse --show-toplevel`) holds the identity file
-  `.agents/repository.yml`, and the owner/name of `git remote get-url origin` equals its `remote` (with
-  `remote: none`, `git remote` prints nothing). Read its `never:` line: what must never enter this repository. Work
-  from the root.
+  `.agents/repository.yml`, and the owner/name of `git remote get-url origin` equals its `remote` (with `remote: none`,
+  `git remote` prints nothing). Read its `never:` line: what must never enter this repository. Work from the root.
 - **The six guardrails** are in the Safety section of the
   [global instructions](.agents/instructions/global-instructions.md): how every AI works with the owner, a read-only
   copy from `system` that `CLAUDE.md` imports (a public repository has no copy). Read them in full; they hold in
   every repository, whatever the rest of this page says.
 - **Protected files** here, changed only on the owner's yes, in a commit that carries the line
-  `Owner-yes: "<his words>"`: `.agents/instructions/global-instructions.md`, `.gitleaksignore`,
-  `scripts/check_commit_message.py`, `.claude/hooks/`, `scripts/install.py` (it installs the git hooks).
+  `Owner-yes: "<his words>"`: `.agents/instructions/global-instructions.md`, `.gitleaksignore`, `.claude/hooks/`,
+  `scripts/check_commit_message.py`, `scripts/check_views.py`, `scripts/install.py` if present (the git-hook installer).
 - **Blocked paths.** Never open, list, read, search, copy, move or write a blocked path, or walk
   through a folder above one. This repository is public, so the list is not written here: the
   laptop's user settings deny each one.
-- **Commits** end with the line `Made-by: agent | program <tool>` (`claude-code`, `codex`).
-- **Each file's original and its copies:** the [source map](docs/source-map.md), written by
-  `python3 scripts/source_map.py` at the close-out of work.
+- **Commits** end with the trailers in this order: `Owner-yes:` where a protected file changed, then
+  `Made-by: agent | program <tool>` (`claude-code`, `codex`), then any `Co-authored-by:` lines.
+- **Each file's original and its copies:** where the repository has them, the source map `docs/source-map.md`,
+  written by `python3 scripts/source_map.py` at the close-out of work.
 <!-- shared:end -->
 
 A public repository gets no copy of the global instructions, so the six guardrails are here in short:
