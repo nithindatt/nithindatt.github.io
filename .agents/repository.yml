@@ -17,6 +17,7 @@ kind: website
 remote: nithindatt/nithindatt.github.io
 classification: public
 never: Anything not approved for the public.
+chat-archive: personal
 template-version: 38210f0
 status: active
 blueprint: workbench@public-pages
