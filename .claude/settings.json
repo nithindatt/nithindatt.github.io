@@ -99,5 +99,18 @@
       "PowerShell(gh pr merge *--repo*)",
       "PowerShell(gh pr merge *--auto*)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f \"$CLAUDE_PROJECT_DIR/.claude/hooks/component-router.py\" ]; then python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/component-router.py\"; else echo \"NOTICE component-router missing\" >&2; echo '{\"systemMessage\":\"NOTICE component-router missing\"}'; fi"
+          }
+        ]
+      }
+    ]
   }
 }

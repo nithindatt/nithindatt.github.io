@@ -12,17 +12,29 @@ workbench of the owner's private repository; nothing of the owner's private-life
   is added to its exclude list there first.
 - Never add a `.nojekyll` file: it switches the exclude list off and publishes every file.
 - Never push a branch here from an agent session: a pushed branch is public at once, so the owner pushes it. Once his
-  branch's pull request is open, an agent merges it (and so publishes it) after the local checks and a normal and a
-  sceptic reviewer pass (the owner's yes of 2026-10-31, `system` task S193).
+  branch's pull request is open, an agent merges it (and so publishes it) after the local checks and the review pass
+  (the owner's yes of 2026-10-31, `system` task S193).
 - Never edit a copy from `system`: this page and every other file the sync delivers, each listed in
   `.agents/delivered.csv` (for a file with a shared block, such as `.gitignore`, only the block), change only in
-  `system`. Where its format allows, a copy's first line says `generated from system: edit there`. A rule of this
-  repository's own goes in a section headed `Local` at the end of this page, a skill in a folder named
-  `local-<name>`, any other item in a file of its own once the exclude list covers it (above); the sync keeps them. A
-  settings entry of its own goes in the git-ignored `.claude/settings.local.json`, never in `.claude/settings.json`,
-  which git publishes with this public repository. A new worktree has no `.claude/settings.local.json` (git does not
-  carry an ignored file): copy it from the main clone first. A local item wins over a copy until `system` takes it
-  in, never over a guardrail.
+  `system`. Where its format allows, a copy's first line says `generated from system: edit there`. A component item
+  (a rule, skill, hook, mod, check, routine, template, setting or prompt), new or changed, is built only in `system`.
+  A component change found here goes as a brief (what, why, his words as he typed them, example files) to a `system`
+  session (a running one on its topic, else a new one). When no session can start, the last step is the brief in the
+  reply to the owner, with one task line in that reply for him to add to his own task list; no file here. No change
+  record is written for it: never as a file here, because
+  every file this repository holds is public (`_config.yml` does not exclude `change-records/`), and never in the
+  private main repository, whose folder this repository's `.claude/settings.local.json` denies. This repository has
+  no handing-off-work skill: its text is internal.
+  The hook `.claude/hooks/component-router.py` stops a write to the component paths (this page and `CLAUDE.md` among
+  them) and the commit check refuses such a commit; any `chore/sync-*` branch passes both, and the reviewers of its
+  pull request check that it came from `system`'s sync. A new rule about how this repository works goes to `system`
+  the same way, never into this page. An item already in the local layer (a section headed `Local` at the end of
+  this page, a skill in a folder named `local-<name>`) is kept by the sync. The private denies live in the
+  git-ignored `.claude/settings.local.json`, a hand copy of `system:library/settings/claude-local@public/`, never in
+  `.claude/settings.json`, which git publishes with this public repository; a new entry for either is built in
+  `system`. A new worktree has no `.claude/settings.local.json` (git does not carry an ignored file): copy it from the
+  main clone first, unchanged (`cp`). A local item wins over a copy until `system` takes it in, never over a
+  guardrail.
 
 <!-- shared:begin (the sync from `system` writes this block; a change made here is undone at the next sync) -->
 ## Shared by every company repository
@@ -35,7 +47,7 @@ workbench of the owner's private repository; nothing of the owner's private-life
   every repository, whatever the rest of this page says.
 - **Protected files** here, changed only on the owner's yes, in a commit that carries the line
   `Owner-yes: "<his words>"`: `.agents/instructions/global-instructions.md`, `.gitleaksignore`, `.claude/hooks/`,
-  `scripts/check_commit_message.py`, `scripts/check_views.py`, `scripts/install.py` if present (the git-hook installer).
+  `scripts/check_commit_message.py`, `scripts/check_views.py`; if present, `scripts/install.py` (git hooks) and `mods/`.
 - **Blocked paths.** Never open, list, read, search, copy, move or write a blocked path, or walk
   through a folder above one. This repository is public, so the list is not written here: the
   laptop's user settings deny each one.
