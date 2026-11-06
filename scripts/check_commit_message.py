@@ -79,10 +79,29 @@ GitHub that refuses component paths on a branch that is not `chore/sync-*` and p
 (task S226); until then protected files rest on the merger's `Owner-yes:` check (global instructions, Safety).
 GAP: a conflict's resolution is not judged; the reviewers of the pull request see it.
 
+Blocks a third thing, the part of the standing yes a tool can read (guardrail 6, decision 0033 in `system`): an agent's
+or a routine's commit that weakens a guard in one of these readable ways needs a second line, `Owner-yes-weaker: "<his
+words naming this change>"`, beside `Owner-yes:`, holding other words than that line and not those of the standing yes.
+The readable ways, compared file by file between HEAD and the staged file, so an entry moved or edited counts: in a
+Claude settings file (`.claude/settings.json`, `.claude/settings.local.json`, `library/settings/**.json`) a deny or ask
+entry, a hook (its event, matcher and command together) or an Auto mode list entry other than an allow or environment
+line gone, or an allow entry, an additional directory, an Auto mode allow or environment line, a `defaultMode` or
+`disableAllHooks` added; in a pre-commit file a hook id gone; in a workflow file a step name gone; in a secret-scan
+exceptions file a line added; and a check or hook file gone (`scripts/check_*`, `.claude/hooks/*`, `library/checks/*`,
+`library/hooks/*`, counted by file name, so a moved file is no change). A settings file that HEAD holds as valid JSON
+and that is staged as anything else counts too, since it may guard nothing now. A file HEAD does not hold counts as an
+added one, except on a commit with no HEAD or on a sync branch outside `library/`, where a repository takes its first
+copy. During a merge of one branch git has in progress, it reads only the paths edited beyond git's own merge of the two
+sides, against that merge: a merge brings approved changes (GAP: a conflict's resolution is not judged, as above). GAP:
+the line is typed by the agent it limits, and nothing here proves the words are his: it stops an honest mistake and
+leaves a record, not a lie. GAP: any other weakening (a hook that blocks less, a check that tests less, another settings
+key such as `env`, a connector file) is not read here: the `reviewer` pass that confirms "no weaker" (guardrail 6) stays
+the net for it.
+
 Reports only (prints a NOTICE and passes, because format is not harm): a subject that is not in the form
 `type(scope): summary` (or `type: summary`), a missing `Made-by: agent | program <tool>` line (or `job` or
-`owner`), and trailers out of their one order: `Owner-yes:`, then `Made-by:`, then any `Co-authored-by:` lines (in
-any letter case; the commit template in system:docs/rules/reference.md).
+`owner`), and trailers out of their one order: `Owner-yes:`, then any `Owner-yes-weaker:`, then `Made-by:`, then any
+`Co-authored-by:` lines (in any letter case; the commit template in system:docs/rules/reference.md).
 
 A commit the owner makes by hand is never checked (the owner's rule, 2026-09-29: freedom, not new blocks). A merge or
 a revert that git itself has in progress (MERGE_HEAD or REVERT_HEAD exists) gets no format report. During a merge of
@@ -101,7 +120,9 @@ when Codex's shell sets `CODEX_SANDBOX` (UNVERIFIED, `by_agent()` below) or the 
 
 Usage (by pre-commit): python3 scripts/check_commit_message.py <message file>
 """
+import collections
 import fnmatch
+import json
 import os
 import re
 import subprocess
@@ -111,8 +132,13 @@ TYPES = "feat|fix|docs|chore|refactor|test|build|ci|perf|style|revert"
 SUBJECT = re.compile(rf"^({TYPES})(\([a-z0-9-]+\))?!?: \S")
 TRAILER = re.compile(r"^Made-by: (agent|job|owner) \| program \S+", re.M)
 OWNER_YES = re.compile(r"^Owner-yes: [\"“][^\"”]*\S[^\"”]*[\"”]\s*$", re.M)
+OWNER_YES_WEAKER = re.compile(r"^Owner-yes-weaker: [\"“]([^\"”]*\S[^\"”]*)[\"”]\s*$", re.M)
+# Words that mark his general yeses, which never cover a weakening (decision 0033 in `system`).
+GENERAL_YES = ("all four", "standing yes", "one yes line")
+OWNER_YES_WORDS = re.compile(r"^Owner-yes: [\"“]([^\"”]*)[\"”]\s*$", re.M)
 # The trailers in their one order: a line of a later kind before a line of an earlier kind is out of order.
-TRAILER_ORDER = tuple(re.compile(rf"^{name}:", re.I) for name in ("Owner-yes", "Made-by", "Co-authored-by"))
+TRAILER_ORDER = tuple(re.compile(rf"^{name}:", re.I) for name in ("Owner-yes", "Owner-yes-weaker", "Made-by",
+                                                                  "Co-authored-by"))
 AGENT_MARKERS = ("AI_AGENT", "CLAUDECODE", "CLAUDE_CODE_REMOTE", "CODEX_SANDBOX")
 HUB = ("AGENTS.md", ".agents/instructions/global-instructions.md", "system/permissions.md",
        # workspace's copy of the blocked-paths list, protected as its original in system is (2026-10-30)
@@ -165,7 +191,7 @@ EVERYWHERE = (".agents/instructions/global-instructions.md", ".gitleaksignore", 
 
 
 def trailers_in_order(lines):
-    """True when the trailer lines keep the order Owner-yes:, then Made-by:, then any Co-authored-by: lines."""
+    """True when the trailer lines keep the order Owner-yes:, Owner-yes-weaker:, Made-by:, then any Co-authored-by:."""
     last = -1
     for line in lines:
         rank = next((n for n, pattern in enumerate(TRAILER_ORDER) if pattern.match(line)), None)
@@ -230,12 +256,8 @@ def merge_state():
     return "merge" if len(heads) <= 1 else "other"
 
 
-def slipped_into_merge(paths):
-    """The paths among these whose staged content differs from git's own merge of HEAD and MERGE_HEAD and that were not
-    a conflict there: an edit slipped into a merge. None when git cannot compute that merge (git older than 2.38 has
-    no `merge-tree --write-tree`). `--allow-unrelated-histories` is always passed: git writes MERGE_HEAD for two
-    unrelated histories only when the merge itself allowed them, and for related ones the option changes nothing.
-    Two git calls whatever the number of paths: the merge, then one comparison of the index with its tree."""
+def own_merge():
+    """(tree, conflicted paths) of git's own merge of HEAD and MERGE_HEAD, or None when git cannot compute it."""
     try:
         done = subprocess.run(["git", "merge-tree", "--write-tree", "--name-only", "--no-messages", "-z",
                                "--allow-unrelated-histories", "HEAD", "MERGE_HEAD"], capture_output=True, text=True,
@@ -247,7 +269,19 @@ def slipped_into_merge(paths):
     names = done.stdout.split("\0")
     if done.returncode not in (0, 1) or not names[0].strip():
         return None
-    tree, conflicted = names[0].strip(), {name for name in names[1:] if name}
+    return names[0].strip(), {name for name in names[1:] if name}
+
+
+def slipped_into_merge(paths):
+    """The paths among these whose staged content differs from git's own merge of HEAD and MERGE_HEAD and that were not
+    a conflict there: an edit slipped into a merge. None when git cannot compute that merge (git older than 2.38 has
+    no `merge-tree --write-tree`). `--allow-unrelated-histories` is always passed: git writes MERGE_HEAD for two
+    unrelated histories only when the merge itself allowed them, and for related ones the option changes nothing.
+    Two git calls whatever the number of paths: the merge, then one comparison of the index with its tree."""
+    merged = own_merge()
+    if merged is None:
+        return None
+    tree, conflicted = merged
     try:
         differ = subprocess.run(["git", "diff", "--cached", "--name-only", "--no-renames", "-z", tree],
                                 capture_output=True, text=True, encoding="utf-8")
@@ -448,6 +482,149 @@ def merge_net(body):
                                       "; in a merge: edited beyond git's own merge of the two sides"))
 
 
+def guard_kind(path):
+    """Which kind of guard file a path is (letter case ignored), or '' when it is none."""
+    low = path.lower()
+    if low in (".claude/settings.json", ".claude/settings.local.json") or (
+            low.startswith("library/settings/") and low.endswith(".json")):
+        return "settings"
+    if low == ".pre-commit-config.yaml" or fnmatch.fnmatchcase(low, "library/hooks/pre-commit*/*"):
+        return "pre-commit"
+    if fnmatch.fnmatchcase(low, ".github/workflows/*") or fnmatch.fnmatchcase(low, "library/checks/workflow-*/*"):
+        return "workflow"
+    if low == ".gitleaksignore" or fnmatch.fnmatchcase(low, "library/repository-files/gitleaksignore*"):
+        return "secret-scan"
+    return ""
+
+
+def is_guard_code(path):
+    """True for a check or hook file (letter case ignored); `__pycache__` and pages are not code."""
+    low = path.lower()
+    return (low.endswith(".py") and "__pycache__" not in low
+            and any(fnmatch.fnmatchcase(low, name) for name in ("scripts/check_*", ".claude/hooks/*",
+                                                                "library/checks/*", "library/hooks/*")))
+
+
+def settings_entries(text):
+    """(what must stay, what must not grow) in a settings file's text; None when it is not valid JSON."""
+    try:
+        data = json.loads(text)
+        allowed = data.get("permissions", {})
+        keep = {f"deny entry {entry}" for entry in allowed.get("deny", [])}
+        keep |= {f"ask entry {entry}" for entry in allowed.get("ask", [])}
+        keep |= {f"{event} hook {group.get('matcher', '')} {hook.get('command', '')}"
+                 for event, groups in data.get("hooks", {}).items() for group in groups for hook in group.get("hooks", [])}
+        grow = {f"allow entry {entry}" for entry in allowed.get("allow", [])}
+        grow |= {f"additional directory {entry}" for entry in allowed.get("additionalDirectories", [])}
+        for key, entries in data.get("autoMode", {}).items():
+            if key in ("allow", "environment"):
+                grow |= {f"Auto mode {key} {entry}" for entry in entries if entry != "$defaults"}
+            elif isinstance(entries, list):
+                keep |= {f"Auto mode {key} {entry}" for entry in entries if entry != "$defaults"}
+    except (ValueError, AttributeError, TypeError):
+        return None
+    if allowed.get("defaultMode"):
+        grow.add(f"defaultMode {allowed['defaultMode']}")
+    if data.get("disableAllHooks"):
+        grow.add("disableAllHooks")
+    return keep, grow
+
+
+def guard_entries(kind, text):
+    """(what must stay, what must not grow) in a guard file's text, by its kind; None when it cannot be read."""
+    if kind == "settings":
+        return settings_entries(text)
+    if kind == "pre-commit":
+        return {f"pre-commit hook {name}" for name in re.findall(r"^\s*- id:\s*(\S+)", text, re.M)}, set()
+    if kind == "workflow":
+        return {f"workflow step {name.strip()}" for name in re.findall(r"^\s*- name:\s*(.+)$", text, re.M)}, set()
+    return set(), {f"secret-scan exception {line.strip()}" for line in text.splitlines()
+                   if line.strip() and not line.startswith("#")}
+
+
+def blob(spec):
+    """The text git shows for spec (`HEAD:<path>` or `:<path>`), or None when git shows none."""
+    try:
+        done = subprocess.run(["git", "show", spec], capture_output=True, text=True, encoding="utf-8",
+                              errors="replace")
+    except OSError:
+        return None
+    return done.stdout if done.returncode == 0 else None
+
+
+def has_head():
+    """True when the repository has a HEAD commit."""
+    try:
+        return subprocess.run(["git", "rev-parse", "-q", "--verify", "HEAD"], capture_output=True).returncode == 0
+    except OSError:
+        return False
+
+
+def weakened(staged, base="HEAD"):
+    """What this commit weakens in the ways a tool can read, each named in one short line, against `base`."""
+    found, before, after = set(), collections.Counter(), collections.Counter()
+    first_copy = not has_head() or current_branch().startswith(SYNC_BRANCH)
+    for path in staged:
+        old, new = blob(f"{base}:{path}"), blob(f":{path}")
+        if is_guard_code(path):
+            name = os.path.basename(path).lower()
+            before[name] += old is not None
+            after[name] += new is not None
+        kind = guard_kind(path)
+        if not kind:
+            continue
+        was = guard_entries(kind, old) if old is not None else (set(), set())
+        now = guard_entries(kind, new) if new is not None else (set(), set())
+        if now is None:  # a working file broken: it may guard nothing now, and the check cannot read it
+            if old is not None and was is not None:
+                found.add(f"{path} is not valid JSON")
+            continue
+        was = was or (set(), set())
+        found |= {f"{entry} in {path}" for entry in was[0] - now[0]}
+        if not (old is None and first_copy and not path.lower().startswith("library/")):
+            found |= {f"{entry} in {path}" for entry in now[1] - was[1]}
+    found |= {f"the file {name}" for name in before if after[name] < before[name]}
+    return sorted(found)
+
+
+def weaker_refused(items, body):
+    """A readable weakening without an `Owner-yes-weaker:` line holding his own words for it is refused (1); 0 to pass."""
+    if not items:
+        return 0
+    general = [one.lower() for one in OWNER_YES_WORDS.findall(body)]
+    for words in OWNER_YES_WEAKER.findall(body):
+        low = words.lower()
+        if low not in general and not any(mark in low for mark in GENERAL_YES):
+            return 0
+    shown = "; ".join(item if len(item) < 120 else item[:117] + "..." for item in items)
+    print(f"this commit weakens a guard ({shown}). The standing yes and a job's yes line do not cover that (guardrail "
+          "6, decision 0033). Ask the owner; once he has typed his yes naming this change, add a line "
+          "Owner-yes-weaker: \"<his words>\" beside Owner-yes:. That line holds other words than Owner-yes: and none "
+          f"of the general yes's marks ({', '.join(GENERAL_YES)}): quote the standing yes in Owner-yes: and his words for "
+          "this change here, and if his words hold a mark, ask him to retype them, never alter them. An entry that is "
+          "only moved, edited or renamed counts too, since a tool cannot show it is no weaker. FAIL")
+    return 1
+
+
+def weaker_net(staged, body):
+    """The standing yes's limit a tool can read, on an ordinary commit."""
+    return weaker_refused(weakened([path for path in staged if guard_kind(path) or is_guard_code(path)]), body)
+
+
+def merge_weaker_net(body):
+    """The same limit during a merge of one branch: only on the guard files edited beyond git's own merge, against that
+    merge. When git cannot compute it, on every guard file the merge stages, against HEAD."""
+    staged = staged_files() or []
+    guards = [path for path in staged if guard_kind(path) or is_guard_code(path)]
+    if not guards:
+        return 0
+    merged = own_merge()
+    beyond = slipped_into_merge(guards) if merged else None
+    if beyond is None:
+        return weaker_refused(weakened(guards), body)
+    return weaker_refused(weakened(beyond, merged[0]), body)
+
+
 def main(argv):
     if not argv:
         return 0
@@ -461,22 +638,22 @@ def main(argv):
     body = "\n".join(lines)
     state = merge_state()
     if state == "merge":
-        return max(refused, merge_net(body))
+        return max(refused, merge_net(body), merge_weaker_net(body))
     if state == "other":
         staged = staged_files()
         if staged is None:
             return unreadable("of this revert or merge ")
-        return max(refused, component_net(staged), protected_net(staged, body))
+        return max(refused, component_net(staged), protected_net(staged, body), weaker_net(staged, body))
     if not SUBJECT.match(subject):
         print(f"NOTICE subject '{subject}' is not in the form type(scope): summary, type one of {TYPES}")
     if not TRAILER.search(body):
         print("NOTICE no 'Made-by: agent | program <tool>' line")
     if not trailers_in_order(lines):
-        print("NOTICE the trailers are out of order; keep Owner-yes:, then Made-by:, then any Co-authored-by: lines")
+        print("NOTICE the trailers are out of order; keep Owner-yes:, Owner-yes-weaker:, Made-by:, then any Co-authored-by:")
     staged = staged_files()
     if staged is None:
         return unreadable("")
-    return max(refused, component_net(staged), protected_net(staged, body))
+    return max(refused, component_net(staged), protected_net(staged, body), weaker_net(staged, body))
 
 
 if __name__ == "__main__":
